@@ -1,0 +1,1 @@
+Simple CRUD API built with FastAPI
