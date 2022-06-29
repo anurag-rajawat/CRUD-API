@@ -1,6 +1,7 @@
-from typing import List
+from typing import Optional
 
 from fastapi import Response, Depends, status, HTTPException, APIRouter
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from .. import models, schemas, oauth2
@@ -12,15 +13,23 @@ router = APIRouter(
 )
 
 
-@router.get("/", status_code=status.HTTP_200_OK, response_model=List[schemas.ResponseBase])
-def get_all_courses(db: Session = Depends(get_db)):
-    courses = db.query(models.Course).all()
+# TODO: Create a response model which return all details with ratings
+@router.get("/", status_code=status.HTTP_200_OK)
+def get_all_courses(db: Session = Depends(get_db), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
+    courses = db.query(models.Course, func.count(models.Rating.course_id).label("Ratings")).join(models.Rating,
+                                                                                                 models.Rating.course_id == models.Course.id,
+                                                                                                 isouter=True).group_by(
+        models.Course.id).filter(models.Course.name.contains(search)).limit(limit).offset(skip).all()
     return courses
 
 
-@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.ResponseBase)
+# TODO: Create a response model which return specific course details with ratings
+@router.get("/{id}", status_code=status.HTTP_200_OK)
 def get_course(id: int, db: Session = Depends(get_db)):
-    course = db.query(models.Course).filter(models.Course.id == id).first()
+    course = db.query(models.Course, func.count(models.Rating.course_id).label("Ratings")).join(models.Rating,
+                                                                                                models.Rating.course_id == models.Course.id,
+                                                                                                isouter=True).group_by(
+        models.Course.id).filter(models.Course.id == id).first()
     if course is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Course with id '{id}' doesn't exist!")
     return course

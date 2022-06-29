@@ -23,3 +23,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True, nullable=False)
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
+
+
+class Rating(Base):
+    __tablename__ = "ratings"
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    course_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)

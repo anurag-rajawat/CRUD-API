@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, conint
 
 
 # To avoid confusion between the SQLAlchemy models and the Pydantic models, we will have the file models.py with the
@@ -49,3 +49,9 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[str]
+
+
+# 1 for like and less than it for dislike
+class RateCourseBase(BaseModel):
+    course_id: int
+    choice: conint(le=1)

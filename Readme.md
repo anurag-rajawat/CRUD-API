@@ -15,4 +15,10 @@ Simple CRUD API which persists data in the Postgres database.
 ## [Version3](https://github.com/anurag-rajawat/CRUD-API/tree/master/version3)
 * It supports user registration and authentication.
 * It requires authentication to perform certain operations (create, update & delete).
-* More to be added
+
+## [Final Version](https://github.com/anurag-rajawat/CRUD-API/tree/master/finalversion)
+* The API persists data in the Postgres database.
+* It supports user registration and authentication.
+* It requires authentication to perform certain operations (create, update & delete).
+* It supports rating like, dislike and like a specific course by a user.
+
