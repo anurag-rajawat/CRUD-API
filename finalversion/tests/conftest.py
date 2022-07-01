@@ -9,7 +9,7 @@ from finalversion.utils import get_db
 
 
 @pytest.fixture
-def db_session():
+def dummy_db_session():
     models.Base.metadata.drop_all(bind=engine)
     models.Base.metadata.create_all(bind=engine)
     db = TestingSession()
@@ -20,22 +20,22 @@ def db_session():
 
 
 @pytest.fixture
-def client(db_session):
+def dummy_client(dummy_db_session):
     def override_get_db2():
         try:
-            yield db_session
+            yield dummy_db_session
         finally:
-            db_session.close()
+            dummy_db_session.close()
 
     app.dependency_overrides[get_db] = override_get_db2
     yield TestClient(app)
 
 
 @pytest.fixture
-def create_dummy_user(client):
+def first_dummy_user(dummy_client):
     user_data = {"email": "anurag@gmail.com",
                  "password": "password123"}
-    response = client.post("/users/", json=user_data)
+    response = dummy_client.post("/users/", json=user_data)
     assert response.status_code == 201
     new_user = response.json()
     new_user["password"] = user_data["password"]
@@ -43,10 +43,10 @@ def create_dummy_user(client):
 
 
 @pytest.fixture
-def create_second_dummy_user(client):
+def second_dummy_user(dummy_client):
     user_data = {"email": "dummyuser@gmail.com",
                  "password": "password123"}
-    response = client.post("/users/", json=user_data)
+    response = dummy_client.post("/users/", json=user_data)
     assert response.status_code == 201
     new_user = response.json()
     new_user["password"] = user_data["password"]
@@ -54,43 +54,43 @@ def create_second_dummy_user(client):
 
 
 @pytest.fixture
-def token(create_dummy_user):
-    return create_access_token({"user_id": create_dummy_user["id"]})
+def dummy_token(first_dummy_user):
+    return create_access_token({"user_id": first_dummy_user["id"]})
 
 
 @pytest.fixture
-def authorized_client(client, token):
-    client.headers = {
-        **client.headers,
-        "Authorization": f"Bearer {token}"
+def dummy_authorized_client(dummy_client, dummy_token):
+    dummy_client.headers = {
+        **dummy_client.headers,
+        "Authorization": f"Bearer {dummy_token}"
     }
-    return client
+    return dummy_client
 
 
 @pytest.fixture
-def create_dummy_courses(create_dummy_user, create_second_dummy_user, db_session):
+def dummy_courses(first_dummy_user, second_dummy_user, dummy_db_session):
     courses_data = [
         {
             "name": "Introduction to Database",
             "description": "This course is designed by keeping beginners in mind",
-            "user_id": create_dummy_user["id"]},
+            "user_id": first_dummy_user["id"]},
         {
             "name": "Introduction to DB-Design",
             "description": "This is an intermediate course for this you've a good understanding of databases",
-            "user_id": create_dummy_user["id"]},
+            "user_id": first_dummy_user["id"]},
         {
             "name": "Introduction to Flask",
             "description": "Introductory Flask course",
-            "user_id": create_dummy_user["id"]},
+            "user_id": first_dummy_user["id"]},
         {
             "name": "Personal Growth courses",
             "description": "If you want to become something then start working on yourself.",
-            "user_id": create_second_dummy_user["id"]
+            "user_id": second_dummy_user["id"]
         }
     ]
 
     courses = list(map(lambda course: models.Course(**course), courses_data))
-    db_session.add_all(courses)
-    db_session.commit()
-    courses = db_session.query(models.Course).all()
+    dummy_db_session.add_all(courses)
+    dummy_db_session.commit()
+    courses = dummy_db_session.query(models.Course).all()
     return courses
