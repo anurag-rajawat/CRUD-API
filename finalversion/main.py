@@ -2,18 +2,15 @@ from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import models
+from .Config import Settings
 from .database import engine
 from .routers import user, course, auth, rating
-from .Config import Settings
 
 settings = Settings()
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# If this api is configured for a specific webapp than narrow down the origins
-# If it is public api then leave it
-# origin = ["https://www.google.com"]
 origin = ["*"]
 
 app.add_middleware(
